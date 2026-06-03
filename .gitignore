@@ -1,0 +1,29 @@
+# =========================
+# Бэкенд (Python)
+# =========================
+backend/venv/
+backend/env/
+backend/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# =========================
+# Фронтенд
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# =========================
+# Системные файлы и ключи
+# =========================
+.DS_Store
+Thumbs.db
+.env
+.env.local
+.idea/
+.vscode/
