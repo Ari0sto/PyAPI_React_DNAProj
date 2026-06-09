@@ -1,12 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, Cookie
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
 
 app = FastAPI(title="DNA API")
 
-#CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Url of the frontend!!!
+    allow_origins=["http://localhost:3000", "http://localhost:5173"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -74,4 +75,39 @@ def get_scientist_by_id(scientist_id: str):
         if scientist["id"] == scientist_id:
             return scientist
     return {"error": "Scientist not found"}
-    
+
+# Эндпоинт для сохранения выбора ученого в куки
+@app.post("/api/scientists/{scientist_id}/select")
+def select_scientist(scientist_id: str, response: Response):
+    """Сохраняет выбор пользователя (ID ученого) в куки"""
+    # проверка на существование ученого
+    if not any(s["id"] == scientist_id for s in scientists_db):
+        return {"error": "Scientist not found"}
+        
+    # Устанавка куки
+    response.set_cookie(
+        key="selected_scientist",
+        value=scientist_id,
+        max_age=30 * 24 * 60 * 60, # 30 дней хранения
+        httponly=True,
+        samesite="lax"
+    )
+    return {"message": f"Scientist {scientist_id} saved to cookies!"}
+
+@app.get("/api/init")
+def get_initial_state(selected_scientist: Optional[str] = Cookie(None)):
+    """Возвращает стартовые данные при загрузке страницы фронтенда"""
+    # Если куки есть, поиск ученого в базе
+    if selected_scientist:
+        for scientist in scientists_db:
+            if scientist["id"] == selected_scientist:
+                return {
+                    "type": "saved_selection", 
+                    "data": scientist
+                }
+                
+    # Если куки нет или ученый не найден, базовая панель
+    return {
+        "type": "default_view", 
+        "message": "Показываем базовую панель"
+    }
